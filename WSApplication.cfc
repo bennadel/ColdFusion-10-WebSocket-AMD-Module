@@ -4,27 +4,12 @@ component
 	output="true"
 	hint="I define the application settings and event handlers."
 	{
-		
-		
-	function logIt( it ){
-		
-		var filePath = (getDirectoryFromPath( getCurrentTemplatePath() ) & "log.txt");		
-		
-		writeDump(
-			var = it,
-			format = "text",
-			output = filePath
-		);
-		
-	}
-		
-		
-		
 	
-	// Instantiate the Application.cfc that we'll use to process 
-	// these WebSocket requests. This component (WSApplication),
+	
+	// Store an instance of the Application.cfc that we'll use to 
+	// process these WebSocket requests. This component (WSApplication),
 	// gets cached. As such, we'll have to re-instantiate the target
-	// Application component at key points in the lifecycle. 
+	// Application component at key points during the lifecycle. 
 	this.application = {};
 		
 	
@@ -49,7 +34,7 @@ component
 		this.application.onWSRequestStart(
 			"unsubscribe",
 			requestInfo.channelName,
-			requestInfo.connectionInfo
+			this.normalizeConnection( requestInfo.connectionInfo )
 		);
 	
 		// Return out.
@@ -61,7 +46,7 @@ component
 	// I determine if the given user can publish the given information.
 	function allowPublish( requestInfo ){
 
-			// Re-instantiate the target application.
+		// Re-instantiate the target application.
 		this.application = new Application();
 		
 		// Check to see if the application will process this event.
@@ -249,6 +234,25 @@ component
 		// Return the normalized connection.
 		return( connection );
 				
+	}
+	
+	
+	// ------------------------------------------------------ //
+	// ------------------------------------------------------ //
+
+
+	// I log the arguments to the text file for debugging.
+	function logData( data ){
+		
+		// Create a log file path for debugging.
+		var logFilePath = (
+			getDirectoryFromPath( getCurrentTemplatePath() ) & 
+			"log.txt"
+		);
+		
+		// Dump to TXT file.
+		writeDump( var=data, output=logFilePath );
+		
 	}
 	
 	

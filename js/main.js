@@ -12,7 +12,8 @@ require.config({
 });
 
 
-// Load the application.
+// Load the application. In order for the Chat controller to run,
+// we need to wait for jQuery and the CFWebSocket module be available.
 require(
 	[
 		"jquery",

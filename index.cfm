@@ -10,7 +10,7 @@
 <html data-app-name="<cfset writeOutput( appName ) />">
 <head>
 	<meta charset="utf-8">
-	<title>ColdFusion 10 WebSocket Demo</title>
+	<title>Using ColdFusion 10 WebSockets With RequireJS</title>
 	
 	<!-- Load the demo styles. -->
 	<style type="text/css">
@@ -76,7 +76,11 @@
 		
 	</style>
 	
-	<!-- Load the script loader and boot-strapping code. -->
+	<!--
+		Load the script loader and boot-strapping code. In this 
+		demo, the "main" JavaScript file acts as a Controller for 
+		the following Chat interface.
+	-->
 	<script 
 		type="text/javascript"
 		src="./js/lib/require/require.js" 
@@ -86,12 +90,12 @@
 <body>
 	
 	<h1>
-		Using ColdFusion WebSockets With RequireJS
+		Using ColdFusion 10 WebSockets With RequireJS
 	</h1>
 	
 	<div class="chatWindow">
 		<ol class="chatHistory">
-			<!-- Chat history. -->
+			<!-- Chat history will be populated dynamically. -->
 		</ol>
 	</div>
 	

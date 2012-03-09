@@ -7,7 +7,7 @@ component
 
 	// Define the application settings.
 	this.name = hash( getCurrentTemplatePath() );
-	this.applicationTimeout = createTimeSpan( 0, 0, 5, 0 );
+	this.applicationTimeout = createTimeSpan( 0, 0, 20, 0 );
 	this.sessionManagement = false;
 	
 	// Set up the WebSocket channels. For this demo, I'm only 
