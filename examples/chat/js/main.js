@@ -17,7 +17,7 @@ require.config({
 require(
 	[
 		"jquery",
-		"cfwebsocket",
+		"../../../cfwebsocket",
 		"domReady"
 	],
 	function( $, ColdFusionWebSocket ){
@@ -47,7 +47,7 @@ require(
 			var message = $( "<span />" )
 				.text( messageData )
 				.addClass( "message" )
- 			;
+			;
 			
 			var item = $( "<li />" )
 				.addClass( "message" )
@@ -206,7 +206,10 @@ require(
 					var user = socket.parse( responseData );
 					
 					// Log subscription event.
-					logEvent( "A new user has entered the chat [ " + user.clientid + " ]." );
+					logEvent( 
+						"A new user has entered the chat [ " + 
+						user.clientid + " ]." 
+					);
 					
 				} else {
 					
