@@ -48,6 +48,9 @@ define(
 	function( $ ){
 		
 		
+		// Version number (no functional value).
+		var version = "0.2.0";
+		
 		// Get the application name from the HTML element. This is a
 		// bit of a hack; but, not sure how else to get around this.
 		var coldfusionAppName = $( "html" ).attr( "data-app-name" );
@@ -108,6 +111,10 @@ define(
 			// result.
 			this._deferredSubscriptions = null;
 			
+			// I keep the outstanding authenticate request deferred
+			// result. 
+			this._deferredAuthenticate = null; 
+			
 			// I handle the raw MESSAGE event from the underlying 
 			// ColdFusion socket. I will simplify it and trigger the
 			// appropriate event handlers.
@@ -122,7 +129,10 @@ define(
 					
 					case "authenticate":
 					
-						// Trigger the public event.
+						// Resolve any outstanding authenticate promise.
+						self._resolveAuthenticatePromise();
+						
+						// Trigger the public event as well.
 						self._trigger( "authenticate", null, null, event );
 						
 					break;
@@ -217,8 +227,28 @@ define(
 			// trigger the appropriate event handlers.
 			var errorHandler = function( event ){
 				
-				// Simply trigger the public event.
-				self._trigger( "error", null, null, event );
+				// console.log( "ERROR" );
+				// console.log( event );
+				
+				// Check to see if we have an error that we can pipe into 
+				// a more appropriate response event.
+				switch (event.reqType){
+					
+					case "authenticate":
+					
+						// Reject any outstanding authenticate promise.
+						self._rejectAuthenticatePromise();
+						
+					break;
+					
+					default:
+					
+						// Generic error. Simply trigger the public event.
+						self._trigger( "error", null, (event.msg || ""), event );
+					
+					break;
+					
+				}
 				
 			};
 			
@@ -252,14 +282,30 @@ define(
 			
 			
 			// I authenticate the given credentials against the 
-			// ColdFusion server.
+			// ColdFusion server. I return a promise that will be resolved
+			// upon successful authentication, or rejected upon failed
+			// authentication.
 			authenticate: function( username, password ){
 				
-				// Pass this off to the underlying socket.
-				this._socket.authenticate( username, password );
+				// Check to see if there is a currently outstanding
+				// request for authentication.
+				if (!this._deferredAuthenticate){
+					
+					// Create a new Deferred object for this authentication request.
+					var deferred = $.Deferred();
+					
+					// Store the deferred.
+					this._deferredAuthenticate = deferred;
+					
+					// Initiate the asynchronous request for the authentication.
+					this._socket.authenticate( username, password );
+					
+				}
 				
-				// Return this reference for method chaining.
-				return( this );
+				// Return the promise for authentication.
+				return(
+					this._deferredAuthenticate.promise()
+				);
 				
 			},
 			
@@ -499,6 +545,46 @@ define(
 				
 				// Return this reference for method chaining.
 				return( this );
+				
+			},
+			
+			
+			// I reject any outstanding deferred result authentication.
+			_rejectAuthenticatePromise: function(){
+				
+				// Check to see if we have an outstanding promise.
+				if (!this._deferredAuthenticate){
+					
+					// Nothing to do, just exit.
+					return;
+					
+				}
+				
+				// Reject the deferred result.
+				this._deferredAuthenticate.reject();
+				
+				// Clear the deferred object.
+				this._deferredAuthenticate = null;
+				
+			},
+			
+			
+			// I resolve any outstanding deferred result authentication.
+			_resolveAuthenticatePromise: function(){
+				
+				// Check to see if we have an outstanding promise.
+				if (!this._deferredAuthenticate){
+					
+					// Nothing to do, just exit.
+					return;
+					
+				}
+				
+				// Resolve the deferred result.
+				this._deferredAuthenticate.resolve();
+				
+				// Clear the deferred object.
+				this._deferredAuthenticate = null;
 				
 			},
 			
