@@ -1,12 +1,10 @@
 
-// I am not sure that we *have* to set these values. But, for 
-// now, let's dump them into the global scope in case the dependent 
-// scripts (in the CFIDE folder) need them.
+// I am not sure that we *have* to set these values. But, for now, let's dump them
+// into the global scope in case the dependent scripts (in the CFIDE folder) need them.
 //
-// Notice that we are allowing a pre-existing setting of these values,
-// which will take presedence over our internal values. Therefore, 
-// if they have already been defined in the global scope, then we will
-// not override those values.
+// Notice that we are allowing a pre-existing setting of these values, which will take 
+// presedence over our internal values. Therefore, if they have already been defined in
+// the global scope, then we will not override those values.
 (function(){
 	
 	// Set our default properties (these will only be used if the 
@@ -49,19 +47,16 @@ define(
 		
 		
 		// Version number (no functional value).
-		var version = "0.2.0";
+		var version = "0.3.0";
 		
-		// Get the application name from the HTML element. This is a
-		// bit of a hack; but, not sure how else to get around this.
-		var coldfusionAppName = $( "html" ).attr( "data-app-name" );
 		
 		// Check to see if we need to "Fill" the JSON object.
-		if (!JSON){
+		if (!window.JSON){
 			
 			// Since this browser doesn't support the JSON object, we
 			// can polyfill it using the underlying ColdFusion 
 			// encoder and decoder.
-			var JSON = {
+			window.JSON = {
 				stringify: function( value ){
 					return( ColdFusion.JSON.encode( value ) );
 				},
@@ -75,10 +70,30 @@ define(
 		
 		// I return an initialized ColdFusion WebSocket wrapper. Each
 		// WebSocket represents one connection. Multiple channels can
-		// be subscribed-to over the single connection.
-		function ColdFusionWebSocket( channel1, channel2, channel3 ){
+		// be subscribed-to over the single connection. All connections
+		// are meant to be to the same application.
+		function ColdFusionWebSocket( applicationName, channels, headers ){
 			
 			var self = this;
+		
+			// Check to see if the channels is a string. If so, let's just split
+			// it on the comma, assuming that multiple channels may have been 
+			// passed-in.
+			if (Object.prototype.toString.call( channels ) === "[object String]"){
+				
+				// Split into an array.
+				channels = channels.split( "," );
+				
+			}
+			
+			// Store the ColdFusion application name. This is required when
+			// making the WebSocket connection so that the correct server-side
+			// memory space is invoked.
+			this._applicationName = applicationName;
+			
+			// Store the custom request headers that we'll pass through with all of the
+			// outgoing requests.
+			this._headers = headers;
 		
 			// This is the underlying Socket connection / ColdFusion 
 			// WebSocket object that we are decorating.
@@ -256,20 +271,42 @@ define(
 			// This object will be bound to our intermediary event
 			// handlers which will interpret the responses.
 			//
-			// NOTE: All arguments to the enclosing constructor are
-			// being concatenated and sent through as the list of
-			// channels for subscription.
+			// NOTE: We are subscribing to the channels AFTER the socket has been created
+			// so that we can attach custom headers.
 			this._socket = ColdFusion.WebSocket.init(
 				"socket",
-				coldfusionAppName,
-				"", // NOT SURE WHAT THIS IS.
-				Array.prototype.join.call( arguments, "," ),
+				this._applicationName,
+				"", // User ID used with native CFLogin system - we're not using this.
+				"", // Comma-delimited list of channels.
 				messageHandler,
 				openHandler,
 				closeHandler,
 				errorHandler,
 				location.pathname // Referrer.				
 			);
+			
+			// Once the connect has been opened, we want to perform a one-time-only 
+			// initial subscribe of the given channels.
+			var initialSubscribeOnly = function(){
+				
+				// Unbind the open-handler - we only want to do this once.
+				self.off( "open", initialSubscribeOnly );
+				
+				// Now that WebSocket connection has been opened, loop over the given
+				// channels to subscribe them individually. We're using this approach,
+				// as opposed to the .init() approach so that we can send headers with
+				// each subscription request.
+				for (var i = 0 ; i < channels.length ; i++){
+					
+					self.subscribe( channels[ i ] );
+					
+				}
+				
+			};
+			
+			// Bind the open event so we can subscribe once the WebSocket has been
+			// connected to the ColdFusion server.
+			this.on( "open", initialSubscribeOnly );
 			
 			// Return this object reference.
 			return( this );
@@ -532,7 +569,7 @@ define(
 			// I deserialize the given JSON value.
 			parse: function( jsonValue ){
 				
-				return( JSON.parse( jsonValue ) );
+				return( window.JSON.parse( jsonValue ) );
 				
 			},
 			
@@ -540,8 +577,16 @@ define(
 			// I publish the given message to the given channel.
 			publish: function( channel, data, headers ){
 				
+				// Compile a collection of provided headers with the cached headers to 
+				// determine what our outgoing headers will be.
+				var publishHeaders = $.extend(
+					{},
+					headers,
+					this._headers
+				);
+				
 				// Pass this along to the underlying socket.
-				this._socket.publish( channel, data, headers );
+				this._socket.publish( channel, data, publishHeaders );
 				
 				// Return this reference for method chaining.
 				return( this );
@@ -636,7 +681,7 @@ define(
 			// I convert the given value to JSON.
 			stringify: function( value ){
 				
-				return( JSON.stringify( value ) );
+				return( window.JSON.stringify( value ) );
 				
 			},
 			
@@ -645,11 +690,19 @@ define(
 			// subscribed.
 			subscribe: function( channel, headers ){
 				
+				// Compile the provided headers with the cached headers to determine what
+				// we'll be sending with out outgoing request.
+				var subscribeHeaders = $.extend(
+					{},
+					headers,
+					this._headers
+				);
+				
 				// Pass this along to the underlying socket. We are 
 				// not going to allow per-channel listeners since that
 				// kind of differentiation will be handled in our
 				// event-bind functionality.
-				this._socket.subscribe( channel, headers );
+				this._socket.subscribe( channel, subscribeHeaders );
 				
 				// Return this reference for method chaining.
 				return( this );
