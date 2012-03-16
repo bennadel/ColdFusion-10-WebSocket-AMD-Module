@@ -141,9 +141,12 @@ require(
 		// sub-channels so we can have more fine-tuned control over
 		// how we respond to messages.
 		var socket = new ColdFusionWebSocket(
-			"chat.message",
-			"chat.userlist.subscribe",
-			"chat.userlist.unsubscribe"			
+			$( "html" ).attr( "data-app-name" ),
+			[
+				"chat.message",
+				"chat.userlist.subscribe",
+				"chat.userlist.unsubscribe"
+			]			
 		);
 		
 		// Set a random handle.
