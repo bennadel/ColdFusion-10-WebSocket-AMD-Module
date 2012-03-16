@@ -60,7 +60,13 @@
 </html>
 
 
-<!--- In a brief moment, publish something to the new user. --->
+<!--- 
+	In a brief moment, publish something from the SERVER to the 
+	new user.
+	
+	NOTE: This will actually go to ALL users who are subscribed to
+	the demo channel - for the demo, it's just me, though. 
+--->
 <cfthread
 	name="publishFromServer"
 	action="run">

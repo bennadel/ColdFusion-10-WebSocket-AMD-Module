@@ -7,11 +7,11 @@ component
 
 	// Define the application settings.
 	this.name = hash( getCurrentTemplatePath() );
-	this.applicationTimeout = createTimeSpan( 0, 0, 0, 10 );
+	this.applicationTimeout = createTimeSpan( 0, 0, 1, 0 );
 	
 	// Enable session management.
 	this.sessionManagement = true;
-	this.sessionTimeout = createTimeSpan( 0, 0, 0, 10 );
+	this.sessionTimeout = createTimeSpan( 0, 0, 1, 0 );
 	
 	// Set up the WebSocket channels.
 	this.wsChannels = [
@@ -72,6 +72,9 @@ component
 			
 		} 
 		
+		// Return out.
+		return;
+		
 	}
 	
 	
@@ -83,6 +86,9 @@ component
 			applicationScope.sessions,
 			hash( sessionScope.sessionID ) 
 		);
+		
+		// Return out.
+		return;
 		
 	}
 	
@@ -115,6 +121,7 @@ component
 		// associated with these session tokens.
 		if (structKeyExists( application.sessions, sessionHash )){
 			
+			// Bind the STANDARD session to the WEBSOCKET session!!!
 			user.session = application.sessions[ sessionHash ]; 
 			
 		}
