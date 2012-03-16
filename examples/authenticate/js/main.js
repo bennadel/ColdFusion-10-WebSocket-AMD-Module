@@ -33,7 +33,10 @@ require(
 		
 		// Create an instance of our ColdFusion WebSocket module
 		// and subscribe to the "Demo" channel.
-		var socket = new ColdFusionWebSocket( "demo" );
+		var socket = new ColdFusionWebSocket(
+			$( "html" ).attr( "data-app-name" ),
+			"demo" 
+		);
 
 		
 		// Listen for published messages on the "Demo" channel.
