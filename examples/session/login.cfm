@@ -30,7 +30,7 @@
 <!--- ----------------------------------------------------- --->
 
 
-<!--- Turn of debugging output. --->
+<!--- Turn off debugging output. --->
 <cfsetting showdebugoutput="false" />
 
 <!--- Reset the output buffer. --->

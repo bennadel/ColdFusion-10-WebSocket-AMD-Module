@@ -1,5 +1,5 @@
 
-<!--- Turn of debugging output. It can't help us in WebSockets. --->
+<!--- Turn off debugging output. It can't help us in WebSockets. --->
 <cfsetting showdebugoutput="false" />
 
 <!--- Reset the output buffer. --->
